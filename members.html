@@ -79,7 +79,11 @@
         left: 12px;
       }
 
-      /* ---------- NAVBAR ---------- */
+      /* ---------- NAVBAR (match index.html behavior) ---------- */
+      body.nav-open {
+        overflow: hidden;
+      }
+
       .site-header {
         position: fixed;
         top: 0;
@@ -87,11 +91,10 @@
         right: 0;
         z-index: 9998;
         padding: 0.9rem 1.1rem;
-        pointer-events: none;
+        pointer-events: auto;
       }
 
       .nav {
-        pointer-events: auto;
         max-width: 1300px;
         margin: 0 auto;
         height: var(--nav-h);
@@ -200,19 +203,22 @@
 
       .nav-drawer {
         display: none;
-        position: absolute;
-        top: calc(0.9rem + var(--nav-h) + 0.55rem);
+        position: fixed;
+        top: calc(0.9rem + var(--nav-h) + 0.75rem);
         left: 1.1rem;
         right: 1.1rem;
-        max-width: 1300px;
-        margin: 0 auto;
-        background: rgba(255, 245, 235, 0.86);
+        z-index: 9999;
+
+        background: rgba(255, 245, 235, 0.88);
         backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 220, 200, 0.7);
         border-radius: 1.5rem;
         box-shadow: 0 28px 45px -28px rgba(50, 25, 10, 0.6);
         padding: 0.6rem;
         pointer-events: auto;
+      }
+      .nav-drawer.open {
+        display: block;
       }
       .nav-drawer a {
         display: block;
@@ -229,8 +235,22 @@
         background: linear-gradient(145deg, rgba(212, 163, 115, 0.92), rgba(184, 107, 77, 0.92));
         color: rgba(255, 245, 235, 0.98);
       }
-      .nav-drawer.open {
-        display: block;
+
+      @media (max-width: 860px) {
+        .nav-links {
+          display: none !important;
+        }
+        .nav-toggle {
+          display: inline-flex !important;
+          align-items: center;
+          gap: 0.55rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        :root {
+          --nav-h: 64px;
+        }
       }
 
       /* Background */
@@ -1182,14 +1202,6 @@
       }
 
       @media (max-width: 860px) {
-        .nav-links {
-          display: none;
-        }
-        .nav-toggle {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.55rem;
-        }
         .wrap {
           border-radius: 2.6rem 0 2.6rem 0;
         }
@@ -1363,7 +1375,7 @@
         const reduceMotion =
           window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // -------- Navbar mobile toggle --------
+        // ---------------- NAVBAR (single, matches index.html) ----------------
         const navToggle = document.getElementById("navToggle");
         const navDrawer = document.getElementById("navDrawer");
 
@@ -1371,27 +1383,34 @@
           if (!navToggle || !navDrawer) return;
           navDrawer.classList.toggle("open", open);
           navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+          document.body.classList.toggle("nav-open", open);
         }
 
         if (navToggle && navDrawer) {
-          navToggle.addEventListener("click", () =>
-            setDrawer(!navDrawer.classList.contains("open")),
-          );
-          navDrawer
-            .querySelectorAll("a")
-            .forEach((a) => a.addEventListener("click", () => setDrawer(false)));
+          navToggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrawer(!navDrawer.classList.contains("open"));
+          });
 
-          window.addEventListener("keydown", (e) => {
+          navDrawer.addEventListener("click", (e) => {
+            const a = e.target.closest("a");
+            if (a) setDrawer(false);
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!navDrawer.classList.contains("open")) return;
+            const clickedToggle = navToggle.contains(e.target);
+            const clickedDrawer = navDrawer.contains(e.target);
+            if (!clickedToggle && !clickedDrawer) setDrawer(false);
+          });
+
+          document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") setDrawer(false);
           });
 
-          window.addEventListener("click", (e) => {
-            const target = e.target;
-            if (!target) return;
-            if (!navDrawer.classList.contains("open")) return;
-            const clickedToggle = navToggle.contains(target);
-            const clickedDrawer = navDrawer.contains(target);
-            if (!clickedToggle && !clickedDrawer) setDrawer(false);
+          window.addEventListener("resize", () => {
+            if (window.innerWidth > 860) setDrawer(false);
           });
         }
 
@@ -1702,7 +1721,6 @@
 
           const first = items[0];
           if (first.type === "video") {
-            // Use poster for cover if available, else placeholder image.
             return { kind: "image", src: first.poster || "", poster: first.poster || "" };
           }
           return { kind: "image", src: first.src || "", poster: "" };
@@ -1712,10 +1730,8 @@
           const items = Array.isArray(h.media) ? h.media : [];
           if (!items.length) return { type: "image", src: "", poster: "", caption: "" };
 
-          // Prefer an image thumb if the first item is video with no poster
           const first = items[0];
           if (first.type === "video" && !first.poster) {
-            // still return video, but UI will show placeholder
             return first;
           }
           return first;
@@ -1827,7 +1843,6 @@
             coverImg.alt = `${h.title} cover`;
             mediaWrap.appendChild(coverImg);
 
-            // If first media is a video, show a small "VIDEO" tag on the cover
             const first = firstMediaThumbForHangout(h);
             if (first && first.type === "video") {
               const tag = document.createElement("div");
@@ -2024,7 +2039,6 @@
 
           const media = mo.media;
           if (media && media.type === "video") {
-            // Use poster/thumb in card
             const img = document.createElement("img");
             img.src = safeImgSrc(media.poster || "", "🎬", "VIDEO");
             img.alt = `${mo.title} video poster`;
@@ -2036,11 +2050,6 @@
             img.src = safeImgSrc(media?.src || "", "🌸", "BLOOM MOMENT");
             img.alt = `${mo.title} photo`;
             mediaWrap.appendChild(img);
-            if (media && media.type === "image") {
-              // no tag needed
-            } else {
-              // placeholder
-            }
           }
 
           const meta = document.createElement("div");
@@ -2124,7 +2133,6 @@
             wrap.appendChild(badge);
 
             if (item.type === "video") {
-              // Show poster as thumbnail in strip (clean + fast)
               const img = document.createElement("img");
               img.src = safeImgSrc(item.poster || "", "🎬", "VIDEO");
               img.alt = `${h.title} video ${idx + 1} poster`;
@@ -2211,8 +2219,6 @@
 
         function closeMediaLightbox() {
           if (!mediaLightbox || !mediaView) return;
-
-          // Stop video playback by removing the element
           mediaView.innerHTML = "";
           mediaCap.textContent = "";
           mediaLightbox.classList.remove("open");

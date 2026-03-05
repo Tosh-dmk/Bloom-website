@@ -25,7 +25,6 @@
         --brand-b: #b86b4d;
         --brand-c: #c4826e;
         --glass: rgba(255, 245, 235, 0.62);
-        --glass-strong: rgba(255, 235, 215, 0.78);
         --stroke: rgba(255, 220, 200, 0.55);
         --shadow: 0 20px 35px -18px rgba(70, 40, 20, 0.35);
         --nav-h: 76px;
@@ -48,19 +47,15 @@
         line-height: 1.5;
         overflow-x: hidden;
         opacity: 0;
-        animation: bodyFadeIn 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: bodyFadeIn 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
       }
-
       @keyframes bodyFadeIn {
-        0% {
-          opacity: 0;
-        }
-        100% {
+        to {
           opacity: 1;
         }
       }
 
-      /* Skip link (keyboard accessibility) */
+      /* Skip link */
       .skip-link {
         position: absolute;
         left: -999px;
@@ -79,7 +74,11 @@
         left: 12px;
       }
 
-      /* ---------- NAVBAR (NEW) ---------- */
+      /* ---------- NAVBAR ---------- */
+      body.nav-open {
+        overflow: hidden;
+      }
+
       .site-header {
         position: fixed;
         top: 0;
@@ -87,11 +86,10 @@
         right: 0;
         z-index: 9998;
         padding: 0.9rem 1.1rem;
-        pointer-events: none; /* allow background petals to remain non-interactive; we'll re-enable inside nav */
+        pointer-events: auto;
       }
 
       .nav {
-        pointer-events: auto;
         max-width: 1300px;
         margin: 0 auto;
         height: var(--nav-h);
@@ -166,26 +164,21 @@
           box-shadow 0.25s ease;
         outline: none;
       }
-
       .nav-link:hover {
         transform: translateY(-1px);
         background: rgba(255, 240, 220, 0.75);
         box-shadow: 0 16px 20px -18px rgba(70, 35, 15, 0.55);
       }
-
       .nav-link:focus-visible {
         outline: 3px solid rgba(255, 170, 122, 0.95);
         outline-offset: 2px;
       }
-
-      /* Active (Home on this page) */
       .nav-link.is-active {
         background: linear-gradient(145deg, rgba(212, 163, 115, 0.92), rgba(184, 107, 77, 0.92));
         color: rgba(255, 245, 235, 0.98);
         box-shadow: 0 16px 22px -18px rgba(50, 20, 10, 0.6);
       }
 
-      /* Mobile menu toggle */
       .nav-toggle {
         display: none;
         border: 1px solid rgba(255, 220, 200, 0.65);
@@ -205,20 +198,22 @@
 
       .nav-drawer {
         display: none;
-        position: absolute;
-        top: calc(0.9rem + var(--nav-h) + 0.55rem);
+        position: fixed;
+        top: calc(0.9rem + var(--nav-h) + 0.75rem);
         left: 1.1rem;
         right: 1.1rem;
-        max-width: 1300px;
-        margin: 0 auto;
-        background: rgba(255, 245, 235, 0.86);
+        z-index: 9999;
+
+        background: rgba(255, 245, 235, 0.88);
         backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 220, 200, 0.7);
         border-radius: 1.5rem;
         box-shadow: 0 28px 45px -28px rgba(50, 25, 10, 0.6);
         padding: 0.6rem;
       }
-
+      .nav-drawer.open {
+        display: block;
+      }
       .nav-drawer a {
         display: block;
         padding: 0.9rem 1rem;
@@ -235,23 +230,33 @@
         color: rgba(255, 245, 235, 0.98);
       }
 
-      .nav-drawer.open {
-        display: block;
+      @media (max-width: 860px) {
+        .nav-links {
+          display: none !important;
+        }
+        .nav-toggle {
+          display: inline-flex !important;
+          align-items: center;
+          gap: 0.55rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        :root {
+          --nav-h: 64px;
+        }
       }
 
       /* Background */
       .gradient-bg {
         position: fixed;
         inset: 0;
-        width: 100%;
-        height: 100%;
         background: linear-gradient(125deg, #fff1e0 0%, #fff9e6 40%, #ffe6e9 80%, #fff1dd 100%);
         background-size: 300% 300%;
         animation: softGradientShift 16s ease infinite;
         z-index: -2;
         pointer-events: none;
       }
-
       @keyframes softGradientShift {
         0% {
           background-position: 0% 50%;
@@ -267,14 +272,11 @@
       .petal-container {
         position: fixed;
         inset: 0;
-        width: 100%;
-        height: 100%;
         pointer-events: none;
         z-index: -1;
         overflow: hidden;
         will-change: transform;
       }
-
       .petal {
         position: absolute;
         color: rgba(255, 200, 200, 0.25);
@@ -285,7 +287,6 @@
         transform-origin: center;
         will-change: transform, opacity;
       }
-
       @keyframes floatPetals {
         0% {
           transform: translateY(110vh) rotate(0deg) scale(0.8);
@@ -303,19 +304,18 @@
       .content {
         position: relative;
         z-index: 5;
-        padding-top: calc(
-          var(--nav-h) + 2.2rem
-        ); /* prevents the fixed nav from covering the hero */
-      }
-
-      main {
-        display: block;
+        padding-top: calc(var(--nav-h) + 2.2rem);
       }
 
       section {
         max-width: 1300px;
         margin: 0 auto;
         padding: 5rem 2rem;
+      }
+      @media (max-width: 600px) {
+        section {
+          padding: 3.25rem 1.1rem;
+        }
       }
 
       .hero-section {
@@ -329,11 +329,9 @@
 
       .hero-content {
         max-width: 1000px;
-        transform: translateY(0);
         animation: slideUpFade 1.2s ease-out;
         will-change: transform;
       }
-
       @keyframes slideUpFade {
         0% {
           opacity: 0;
@@ -377,7 +375,6 @@
           0 0 20px #ffdbc5;
         animation: softGlowPulse 3s infinite ease-in-out;
       }
-
       @keyframes softGlowPulse {
         0% {
           text-shadow:
@@ -495,7 +492,13 @@
         background-clip: text;
         color: transparent;
       }
+      @media (max-width: 800px) {
+        .section-title {
+          font-size: 2.5rem;
+        }
+      }
 
+      /* ---------- VIDEO SHOWCASE (FIXED FOR MOBILE) ---------- */
       .video-showcase {
         display: flex;
         flex-wrap: wrap;
@@ -516,7 +519,7 @@
         background: rgba(230, 210, 190, 0.3);
         backdrop-filter: blur(5px);
         border-radius: 2rem;
-        aspect-ratio: 16/9;
+        aspect-ratio: 16 / 9; /* default */
         position: relative;
         overflow: hidden;
         box-shadow: 0 20px 30px -10px rgba(70, 40, 20, 0.2);
@@ -524,6 +527,21 @@
           transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1),
           box-shadow 0.4s;
         border: 1px solid rgba(255, 220, 200, 0.5);
+      }
+
+      /* auto classes set by JS for NON-featured cards */
+      .video-card.portrait {
+        aspect-ratio: 9 / 16;
+      }
+      .video-card.square {
+        aspect-ratio: 1 / 1;
+      }
+
+      /* Featured stays wide always (prevents that giant tall block you saw) */
+      .featured-video.video-card,
+      .featured-video.video-card.portrait,
+      .featured-video.video-card.square {
+        aspect-ratio: 16 / 9;
       }
 
       .video-card:hover {
@@ -542,6 +560,22 @@
         background: rgba(0, 0, 0, 0.08);
       }
 
+      /* Mobile: fill landscape cards, but keep portrait contain to avoid ugly crops */
+      @media (max-width: 600px) {
+        .video-card video {
+          object-fit: cover;
+        }
+        .video-card.portrait video {
+          object-fit: contain;
+        }
+
+        /* Portrait cards should not be full-width tall; narrow and center */
+        .video-grid .video-card.portrait {
+          width: min(360px, 100%);
+          margin-inline: auto;
+        }
+      }
+
       .video-caption {
         position: absolute;
         left: 0;
@@ -558,38 +592,79 @@
         font-size: 1rem;
         pointer-events: none;
       }
-
-      .video-card.is-playing .video-caption {
-        top: 0;
-        bottom: auto;
-        border-radius: 2rem 2rem 0 0;
+      @media (max-width: 600px) {
+        .video-caption {
+          padding: 0.55rem;
+          font-size: 0.95rem;
+        }
+      }
+      /* NEW: wrapper for card + caption */
+      .video-item {
+        display: grid;
+        gap: 0.7rem;
       }
 
-      .video-card::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 60%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 250, 240, 0.18), transparent);
-        animation: shimmer 3s infinite;
-        z-index: 2;
+      /* CHANGE: caption is no longer absolute */
+      .video-caption {
+        position: static;
+        background: rgba(255, 235, 215, 0.72);
+        backdrop-filter: blur(8px);
+        padding: 0.7rem 0.9rem;
+        font-weight: 600;
+        color: #3e2c1e;
+        text-align: center;
+        border-radius: 999px;
+        font-size: 1rem;
         pointer-events: none;
       }
+      @media (max-width: 600px) {
+        /* featured stays full width */
+        .featured-video {
+          width: 100%;
+        }
 
-      @keyframes shimmer {
-        0% {
-          left: -100%;
+        /* small videos become 2 columns */
+        .video-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
         }
-        20% {
-          left: 120%;
+
+        /* make cards smaller + consistent */
+        .video-grid .video-card {
+          aspect-ratio: 4 / 5; /* good compromise for portrait + landscape */
         }
-        100% {
-          left: 120%;
+
+        /* featured card stays wide */
+        .featured-video .video-card {
+          aspect-ratio: 16 / 9;
+        }
+
+        /* avoid “cropped/squeezed” look */
+        .video-card video {
+          object-fit: contain;
+        }
+
+        /* smaller captions so they don’t look huge */
+        .video-caption {
+          padding: 0.55rem 0.75rem;
+          font-size: 0.95rem;
         }
       }
-
+      @media (max-width: 600px) {
+        .play-overlay {
+          backdrop-filter: none;
+          background: rgba(255, 245, 235, 0.25);
+        }
+        .play-overlay-inner {
+          padding: 0.9rem 1rem;
+        }
+        .play-icon {
+          width: 60px;
+          height: 60px;
+          font-size: 2rem;
+        }
+      }
       /* Click-to-play overlay */
       .play-overlay {
         position: absolute;
@@ -615,6 +690,14 @@
           transform 0.25s ease;
       }
 
+      /* Mobile: DON'T blur the thumbnail (fixes “washed out” look) */
+      @media (max-width: 600px) {
+        .play-overlay {
+          backdrop-filter: none;
+          background: rgba(255, 245, 235, 0.28);
+        }
+      }
+
       .play-overlay:focus-visible {
         outline: 3px solid rgba(255, 170, 122, 0.9);
         outline-offset: -6px;
@@ -624,7 +707,7 @@
         display: grid;
         gap: 0.7rem;
         justify-items: center;
-        padding: 1.2rem 1.4rem;
+        padding: 1.1rem 1.25rem;
         border-radius: 1.4rem;
         background: rgba(255, 245, 235, 0.55);
         box-shadow: 0 18px 25px -18px rgba(50, 25, 10, 0.35);
@@ -632,7 +715,6 @@
         transform: translateY(0);
         transition: transform 0.25s ease;
       }
-
       .video-card:hover .play-overlay-inner {
         transform: translateY(-2px);
       }
@@ -648,6 +730,16 @@
         background: linear-gradient(145deg, rgba(212, 163, 115, 0.95), rgba(184, 107, 77, 0.95));
         box-shadow: 0 16px 22px -14px rgba(50, 20, 10, 0.6);
       }
+      @media (max-width: 600px) {
+        .play-icon {
+          width: 62px;
+          height: 62px;
+          font-size: 2rem;
+        }
+        .play-hint {
+          font-size: 1.1rem;
+        }
+      }
 
       .play-hint {
         font-family: "Playfair Display", serif;
@@ -660,6 +752,13 @@
         pointer-events: none;
       }
 
+      @media (max-width: 800px) {
+        .video-showcase {
+          flex-direction: column;
+        }
+      }
+
+      /* Gallery */
       .gallery-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -679,7 +778,6 @@
         background-image: linear-gradient(145deg, #e7d6c5, #cfb8a8);
         cursor: zoom-in;
       }
-
       .photo-item:hover {
         transform: scale(1.02);
         box-shadow: 0 35px 40px -15px #b47e62;
@@ -732,6 +830,7 @@
         transform: translateY(0);
       }
 
+      /* Lightbox */
       .lightbox {
         position: fixed;
         inset: 0;
@@ -743,11 +842,9 @@
         background: rgba(20, 12, 8, 0.62);
         backdrop-filter: blur(10px);
       }
-
       .lightbox.open {
         display: flex;
       }
-
       .lightbox-inner {
         position: relative;
         width: min(1100px, 92vw);
@@ -756,7 +853,6 @@
         gap: 1rem;
         justify-items: center;
       }
-
       .lightbox-img {
         width: 100%;
         max-height: 86vh;
@@ -766,7 +862,6 @@
         box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.65);
         border: 1px solid rgba(255, 220, 200, 0.25);
       }
-
       .lightbox-close {
         position: absolute;
         top: -0.6rem;
@@ -785,18 +880,12 @@
         box-shadow: 0 18px 25px -18px rgba(0, 0, 0, 0.6);
       }
 
-      .lightbox-close:focus-visible {
-        outline: 3px solid rgba(255, 170, 122, 0.95);
-        outline-offset: 2px;
-      }
-
       /* Celebrate */
       .celebrate-section {
         display: flex;
         justify-content: center;
         padding: 4rem 2rem;
       }
-
       .celebrate-btn {
         background: rgba(255, 235, 215, 0.6);
         backdrop-filter: blur(10px);
@@ -812,7 +901,6 @@
         font-family: "Playfair Display", serif;
         letter-spacing: 2px;
       }
-
       .celebrate-btn:hover {
         transform: scale(1.06);
         background: rgba(255, 240, 220, 0.8);
@@ -849,7 +937,6 @@
         animation: floatDown 4s linear forwards;
         will-change: transform, opacity;
       }
-
       @keyframes floatDown {
         0% {
           transform: translateY(-10vh) rotate(0deg);
@@ -880,29 +967,6 @@
         opacity: 0.8;
       }
 
-      @media (max-width: 860px) {
-        .nav-links {
-          display: none;
-        }
-        .nav-toggle {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.55rem;
-        }
-      }
-
-      @media (max-width: 800px) {
-        .video-showcase {
-          flex-direction: column;
-        }
-        .section-title {
-          font-size: 2.5rem;
-        }
-        .lightbox {
-          padding: 1.2rem;
-        }
-      }
-
       @media (prefers-reduced-motion: reduce) {
         html {
           scroll-behavior: auto;
@@ -928,7 +992,6 @@
     <div class="gradient-bg"></div>
     <div class="petal-container" id="petalContainer"></div>
 
-    <!-- NAVBAR (NEW) -->
     <header class="site-header">
       <nav class="nav" aria-label="Primary">
         <a class="brand" href="index.html" aria-label="BLOOM home">
@@ -953,7 +1016,6 @@
         </div>
       </nav>
 
-      <!-- Mobile drawer -->
       <div class="nav-drawer" id="navDrawer" aria-label="Mobile menu">
         <a class="is-active" href="index.html">Home</a>
         <a href="members.html">Members</a>
@@ -991,67 +1053,73 @@
           <h2 class="section-title">Our Bloom Moments</h2>
 
           <div class="video-showcase">
-            <div class="featured-video video-card fade-on-scroll">
-              <video playsinline preload="metadata">
-                <source src="assets/videos/Moments/Group Intro Video.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+            <div class="featured-video video-item fade-on-scroll">
+              <div class="video-card">
+                <video playsinline preload="metadata">
+                  <source src="assets/videos/Moments/Group Intro Video.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
 
-              <button class="play-overlay" type="button" aria-label="Play Village Intro Video">
-                <div class="play-overlay-inner">
-                  <div class="play-icon">▶</div>
-                  <div class="play-hint">Tap to play</div>
-                </div>
-              </button>
+                <button class="play-overlay" type="button" aria-label="Play Village Intro Video">
+                  <div class="play-overlay-inner">
+                    <div class="play-icon">▶</div>
+                    <div class="play-hint">Tap to play</div>
+                  </div>
+                </button>
+              </div>
 
               <div class="video-caption">Village Intro Video</div>
             </div>
 
             <div class="video-grid">
-              <div class="video-card fade-on-scroll">
-                <video playsinline preload="metadata">
-                  <source src="assets/videos/Moments/Group Chant.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+              <div class="video-item fade-on-scroll">
+                <div class="video-card">
+                  <video playsinline preload="metadata">
+                    <source src="assets/videos/Moments/Group Chant.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
-                <button class="play-overlay" type="button" aria-label="Play Bloom Chant Session">
-                  <div class="play-overlay-inner">
-                    <div class="play-icon">▶</div>
-                    <div class="play-hint">Tap to play</div>
-                  </div>
-                </button>
+                  <button class="play-overlay" type="button" aria-label="Play Bloom Chant Session">
+                    <div class="play-overlay-inner">
+                      <div class="play-icon">▶</div>
+                      <div class="play-hint">Tap to play</div>
+                    </div>
+                  </button>
+                </div>
 
                 <div class="video-caption">Bloom Chant Session</div>
               </div>
+              <div class="video-item fade-on-scroll">
+                <div class="video-card">
+                  <video playsinline preload="metadata">
+                    <source src="assets/videos/Moments/Behind The Scenes.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
-              <div class="video-card fade-on-scroll">
-                <video playsinline preload="metadata">
-                  <source src="assets/videos/Moments/Behind The Scenes.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-
-                <button class="play-overlay" type="button" aria-label="Play Behind The Scenes">
-                  <div class="play-overlay-inner">
-                    <div class="play-icon">▶</div>
-                    <div class="play-hint">Tap to play</div>
-                  </div>
-                </button>
+                  <button class="play-overlay" type="button" aria-label="Play Behind The Scenes">
+                    <div class="play-overlay-inner">
+                      <div class="play-icon">▶</div>
+                      <div class="play-hint">Tap to play</div>
+                    </div>
+                  </button>
+                </div>
 
                 <div class="video-caption">Behind The Scenes</div>
               </div>
+              <div class="video-item fade-on-scroll">
+                <div class="video-card">
+                  <video playsinline preload="metadata">
+                    <source src="assets/videos/Moments/Mavazi Ya Siku.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
-              <div class="video-card fade-on-scroll">
-                <video playsinline preload="metadata">
-                  <source src="assets/videos/Moments/Mavazi Ya Siku.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-
-                <button class="play-overlay" type="button" aria-label="Play Fun Moments">
-                  <div class="play-overlay-inner">
-                    <div class="play-icon">▶</div>
-                    <div class="play-hint">Tap to play</div>
-                  </div>
-                </button>
+                  <button class="play-overlay" type="button" aria-label="Fun Moments">
+                    <div class="play-overlay-inner">
+                      <div class="play-icon">▶</div>
+                      <div class="play-hint">Tap to play</div>
+                    </div>
+                  </button>
+                </div>
 
                 <div class="video-caption">Fun Moments</div>
               </div>
@@ -1112,7 +1180,7 @@
         const reduceMotion =
           window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // Navbar mobile toggle
+        // ---------------- NAVBAR (single) ----------------
         const navToggle = document.getElementById("navToggle");
         const navDrawer = document.getElementById("navDrawer");
 
@@ -1120,39 +1188,38 @@
           if (!navToggle || !navDrawer) return;
           navDrawer.classList.toggle("open", open);
           navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+          document.body.classList.toggle("nav-open", open);
         }
 
         if (navToggle && navDrawer) {
-          navToggle.addEventListener("click", () => {
-            const isOpen = navDrawer.classList.contains("open");
-            setDrawer(!isOpen);
+          navToggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrawer(!navDrawer.classList.contains("open"));
           });
 
-          // Close drawer when clicking a link
-          navDrawer.querySelectorAll("a").forEach((a) =>
-            a.addEventListener("click", () => {
-              setDrawer(false);
-            }),
-          );
+          navDrawer.addEventListener("click", (e) => {
+            const a = e.target.closest("a");
+            if (a) setDrawer(false);
+          });
 
-          // Escape closes drawer
-          window.addEventListener("keydown", (e) => {
+          document.addEventListener("click", (e) => {
+            if (!navDrawer.classList.contains("open")) return;
+            const clickedToggle = navToggle.contains(e.target);
+            const clickedDrawer = navDrawer.contains(e.target);
+            if (!clickedToggle && !clickedDrawer) setDrawer(false);
+          });
+
+          document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") setDrawer(false);
           });
 
-          // Click outside closes drawer (mobile)
-          window.addEventListener("click", (e) => {
-            const target = e.target;
-            if (!target) return;
-            if (navDrawer.classList.contains("open")) {
-              const clickedToggle = navToggle.contains(target);
-              const clickedDrawer = navDrawer.contains(target);
-              if (!clickedToggle && !clickedDrawer) setDrawer(false);
-            }
+          window.addEventListener("resize", () => {
+            if (window.innerWidth > 860) setDrawer(false);
           });
         }
 
-        // Petals
+        // ---------------- Petals ----------------
         const petalContainer = document.getElementById("petalContainer");
         const petalEmojis = ["🌸", "🌼", "🌻", "🌺", "🪷", "💮", "✨"];
 
@@ -1172,7 +1239,7 @@
           }
         }
 
-        // Scroll reveal
+        // ---------------- Scroll reveal ----------------
         const fadeElements = document.querySelectorAll(".fade-on-scroll, .chant-line");
         const observer = new IntersectionObserver(
           (entries) => {
@@ -1187,7 +1254,7 @@
         );
         fadeElements.forEach((el) => observer.observe(el));
 
-        // Parallax (optimized)
+        // ---------------- Parallax ----------------
         const hero = document.querySelector(".hero-content");
         const petalsLayer = document.querySelector(".petal-container");
         let ticking = false;
@@ -1204,21 +1271,42 @@
         }
         window.addEventListener("scroll", onScroll, { passive: true });
 
-        // Gallery placeholders:
+        // ---------------- Gallery load states ----------------
         const galleryImgs = document.querySelectorAll(".photo-item img");
         galleryImgs.forEach((img) => {
           const parent = img.closest(".photo-item");
           if (!parent) return;
-
           if (img.complete && img.naturalWidth > 0) parent.classList.add("has-img");
-
           img.addEventListener("load", () => parent.classList.add("has-img"));
           img.addEventListener("error", () => img.remove());
         });
 
-        // Videos: click-to-play + pause other videos automatically
+        // ---------------- Smart video sizing ----------------
+        // Apply portrait/square ONLY to non-featured cards (fixes your screenshot)
         const videoCards = Array.from(document.querySelectorAll(".video-card"));
+        videoCards.forEach((card) => {
+          if (card.classList.contains("featured-video")) return;
+          const v = card.querySelector("video");
+          if (!v) return;
 
+          v.addEventListener(
+            "loadedmetadata",
+            () => {
+              const w = v.videoWidth || 0;
+              const h = v.videoHeight || 0;
+              if (!w || !h) return;
+
+              const r = w / h;
+              card.classList.remove("portrait", "square");
+
+              if (r < 0.95) card.classList.add("portrait");
+              else if (r >= 0.95 && r <= 1.05) card.classList.add("square");
+            },
+            { once: true },
+          );
+        });
+
+        // ---------------- Videos: click-to-play + pause others ----------------
         function pauseOthers(exceptVideo) {
           videoCards.forEach((card) => {
             const v = card.querySelector("video");
@@ -1273,6 +1361,7 @@
           });
         });
 
+        // ---------------- Lightbox ----------------
         const lightbox = document.getElementById("lightbox");
         const lightboxImg = document.getElementById("lightboxImg");
         const lightboxClose = document.getElementById("lightboxClose");
@@ -1281,7 +1370,6 @@
 
         function openLightbox(src, alt) {
           if (!lightbox || !lightboxImg) return;
-
           lastFocusedEl = document.activeElement;
 
           lightboxImg.src = src;
@@ -1289,67 +1377,50 @@
           lightbox.classList.add("open");
           lightbox.setAttribute("aria-hidden", "false");
 
-          // lock scroll behind modal
           document.body.style.overflow = "hidden";
-
-          // focus close button for accessibility
           if (lightboxClose) lightboxClose.focus();
         }
 
         function closeLightbox() {
           if (!lightbox || !lightboxImg) return;
-
           lightbox.classList.remove("open");
           lightbox.setAttribute("aria-hidden", "true");
-
-          // unlock scroll
           document.body.style.overflow = "";
-
-          // clear src to stop memory usage
           lightboxImg.src = "";
 
-          // return focus
           if (lastFocusedEl && typeof lastFocusedEl.focus === "function") {
             lastFocusedEl.focus();
           }
         }
 
-        // Only open if the card actually has a loaded image
         const photoItems = document.querySelectorAll(".photo-item");
         photoItems.forEach((item) => {
           item.addEventListener("click", () => {
             const img = item.querySelector("img");
-            if (!img) return; // placeholder only
+            if (!img) return;
             if (!img.complete || img.naturalWidth === 0) return;
-
             openLightbox(img.src, img.alt);
           });
         });
 
-        // close actions
         if (lightboxClose) lightboxClose.addEventListener("click", closeLightbox);
-
-        // click outside image closes
         if (lightbox) {
           lightbox.addEventListener("click", (e) => {
             if (e.target === lightbox) closeLightbox();
           });
         }
 
-        // esc closes
         window.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && lightbox && lightbox.classList.contains("open")) {
+          if (e.key === "Escape" && lightbox && lightbox.classList.contains("open"))
             closeLightbox();
-          }
         });
 
-        // Celebrate
+        // ---------------- Celebrate ----------------
         const celebrateBtn = document.getElementById("celebrateBtn");
 
         function launchConfettiFlowers() {
           document.body.classList.add("bg-pulse");
           setTimeout(() => document.body.classList.remove("bg-pulse"), 1000);
-
           if (reduceMotion) return;
 
           const flowerEmojis = ["🌸", "🌼", "🌻", "✨", "🌺", "🪷", "💮", "🌸"];

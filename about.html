@@ -12,6 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Poppins:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="assets/images/favicon.png" />
 
     <style>
       :root {
@@ -69,7 +70,11 @@
         left: 12px;
       }
 
-      /* ---------- NAVBAR ---------- */
+      /* ---------- NAVBAR (match index.html behavior) ---------- */
+      body.nav-open {
+        overflow: hidden;
+      }
+
       .site-header {
         position: fixed;
         top: 0;
@@ -77,11 +82,10 @@
         right: 0;
         z-index: 9998;
         padding: 0.9rem 1.1rem;
-        pointer-events: none;
+        pointer-events: auto;
       }
 
       .nav {
-        pointer-events: auto;
         max-width: 1300px;
         margin: 0 auto;
         height: var(--nav-h);
@@ -190,19 +194,22 @@
 
       .nav-drawer {
         display: none;
-        position: absolute;
-        top: calc(0.9rem + var(--nav-h) + 0.55rem);
+        position: fixed;
+        top: calc(0.9rem + var(--nav-h) + 0.75rem);
         left: 1.1rem;
         right: 1.1rem;
-        max-width: 1300px;
-        margin: 0 auto;
-        background: rgba(255, 245, 235, 0.86);
+        z-index: 9999;
+
+        background: rgba(255, 245, 235, 0.88);
         backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 220, 200, 0.7);
         border-radius: 1.5rem;
         box-shadow: 0 28px 45px -28px rgba(50, 25, 10, 0.6);
         padding: 0.6rem;
         pointer-events: auto;
+      }
+      .nav-drawer.open {
+        display: block;
       }
       .nav-drawer a {
         display: block;
@@ -219,8 +226,22 @@
         background: linear-gradient(145deg, rgba(212, 163, 115, 0.92), rgba(184, 107, 77, 0.92));
         color: rgba(255, 245, 235, 0.98);
       }
-      .nav-drawer.open {
-        display: block;
+
+      @media (max-width: 860px) {
+        .nav-links {
+          display: none !important;
+        }
+        .nav-toggle {
+          display: inline-flex !important;
+          align-items: center;
+          gap: 0.55rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        :root {
+          --nav-h: 64px;
+        }
       }
 
       /* Background layers */
@@ -518,17 +539,6 @@
         }
       }
 
-      @media (max-width: 860px) {
-        .nav-links {
-          display: none;
-        }
-        .nav-toggle {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.55rem;
-        }
-      }
-
       @media (prefers-reduced-motion: reduce) {
         html {
           scroll-behavior: auto;
@@ -722,7 +732,7 @@
         const reduceMotion =
           window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // Navbar mobile toggle
+        // ---------------- NAVBAR (single, matches index.html) ----------------
         const navToggle = document.getElementById("navToggle");
         const navDrawer = document.getElementById("navDrawer");
 
@@ -730,36 +740,38 @@
           if (!navToggle || !navDrawer) return;
           navDrawer.classList.toggle("open", open);
           navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+          document.body.classList.toggle("nav-open", open);
         }
 
         if (navToggle && navDrawer) {
-          navToggle.addEventListener("click", () => {
-            const isOpen = navDrawer.classList.contains("open");
-            setDrawer(!isOpen);
+          navToggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrawer(!navDrawer.classList.contains("open"));
           });
 
-          navDrawer.querySelectorAll("a").forEach((a) =>
-            a.addEventListener("click", () => {
-              setDrawer(false);
-            }),
-          );
+          navDrawer.addEventListener("click", (e) => {
+            const a = e.target.closest("a");
+            if (a) setDrawer(false);
+          });
 
-          window.addEventListener("keydown", (e) => {
+          document.addEventListener("click", (e) => {
+            if (!navDrawer.classList.contains("open")) return;
+            const clickedToggle = navToggle.contains(e.target);
+            const clickedDrawer = navDrawer.contains(e.target);
+            if (!clickedToggle && !clickedDrawer) setDrawer(false);
+          });
+
+          document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") setDrawer(false);
           });
 
-          window.addEventListener("click", (e) => {
-            const target = e.target;
-            if (!target) return;
-            if (navDrawer.classList.contains("open")) {
-              const clickedToggle = navToggle.contains(target);
-              const clickedDrawer = navDrawer.contains(target);
-              if (!clickedToggle && !clickedDrawer) setDrawer(false);
-            }
+          window.addEventListener("resize", () => {
+            if (window.innerWidth > 860) setDrawer(false);
           });
         }
 
-        // Petals
+        // ---------------- Petals ----------------
         const petalContainer = document.getElementById("petalContainer");
         const petalEmojis = ["🌸", "🌼", "🌻", "🌺", "🪷", "💮", "✨"];
 
