@@ -250,7 +250,7 @@
         },
         {
           type: "video",
-          src: "assets/videos/moments/Mavazi Ya Siku Hangout 1.mp4",
+          src: "assets/videos/moments/Hangout 1 Video.mp4",
           poster: "assets/videos/moments/hangout poster.png",
           caption: "Na msitutamani",
         },
