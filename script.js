@@ -357,21 +357,12 @@
     return (member.facts || []).find((fact) => String(fact.label).toLowerCase() === "birthday");
   }
 
-  function greetingFromHour(hour) {
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }
-
   function getTimePartsInZone(timeZone) {
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone,
       year: "numeric",
       month: "numeric",
       day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: false,
     }).formatToParts(new Date());
 
     const byType = Object.fromEntries(
@@ -382,8 +373,6 @@
       year: Number(byType.year),
       month: Number(byType.month),
       day: Number(byType.day),
-      hour: Number(byType.hour),
-      minute: Number(byType.minute),
     };
   }
 
@@ -512,7 +501,7 @@
   observeInView(document.querySelectorAll(".fade-on-scroll, .chant-line"));
 
   // ---------------- PARALLAX ----------------
-  const hero = document.querySelector(".hero-content");
+  const heroContent = document.querySelector(".hero-content");
   const petalsLayer = document.querySelector(".petal-container");
   let ticking = false;
 
@@ -522,13 +511,13 @@
     ticking = true;
     requestAnimationFrame(() => {
       const scrollY = window.scrollY || 0;
-      if (hero) hero.style.transform = `translateY(${scrollY * 0.15}px)`;
+      if (heroContent) heroContent.style.transform = `translateY(${scrollY * 0.15}px)`;
       if (petalsLayer) petalsLayer.style.transform = `translateY(${scrollY * 0.03}px)`;
       ticking = false;
     });
   }
 
-  if (hero || petalsLayer) {
+  if (heroContent || petalsLayer) {
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
@@ -652,379 +641,6 @@
     });
   }
 
-  // ---------------- INDEX: CELEBRATE BUTTON ----------------
-  const celebrateBtn = document.getElementById("celebrateBtn");
-  if (celebrateBtn) {
-    celebrateBtn.addEventListener("click", launchConfettiFlowers);
-  }
-
-  // ---------------- INDEX: SPECIAL DAY POPUP ----------------
-  const celebrationModal = document.getElementById("celebrationModal");
-  const celebrationClose = document.getElementById("celebrationClose");
-  const celebrationSecondary = document.getElementById("celebrationSecondary");
-  const celebrationBadge = document.getElementById("celebrationBadge");
-  const celebrationImage = document.getElementById("celebrationImage");
-  const celebrationTitle = document.getElementById("celebrationTitle");
-  const celebrationSubtitle = document.getElementById("celebrationSubtitle");
-  const celebrationBody = document.getElementById("celebrationBody");
-  const celebrationQuote = document.getElementById("celebrationQuote");
-  const celebrationMeta = document.getElementById("celebrationMeta");
-  const celebrationPrimary = document.getElementById("celebrationPrimary");
-
-  let celebrationQueue = [];
-  let lastCelebrationFocus = null;
-
-  const SPECIAL_DAYS = {
-    timeZone: "Africa/Nairobi",
-    birthdays: MEMBERS.map((member) => {
-      const birthdayFact = getBirthdayFact(member);
-      const parsed = parseBirthdayValue(birthdayFact?.value);
-      if (!parsed) return null;
-
-      return {
-        id: `${member.id}-birthday`,
-        month: parsed.month,
-        day: parsed.day,
-        name: member.name,
-        image: member.img,
-        badge: "BLOOM CELEBRATES",
-        title: `Happy Birthday, ${member.name} 🌸`,
-        message: `Today we celebrate ${member.name}, their presence, their growth, and the energy they bring into BLOOM. Wishing them joy, peace, and beautiful memories in the year ahead.`,
-        quote: member.quote || "",
-        chips: ["Birthday", "Member Spotlight"],
-        primaryLabel: "View Members",
-        primaryHref: "members.html",
-      };
-    }).filter(Boolean),
-    anniversary: {
-      id: "bloom-anniversary",
-      month: 1,
-      day: 1,
-      foundedYear: 2025,
-      image: "assets/images/moments/group photo.png",
-      badge: "BLOOM ANNIVERSARY",
-      title: "Happy BLOOM Day 🌸",
-      message:
-        "Today we celebrate another year of unity, growth, laughter, and shared memories. Every hangout, every chant, and every moment is part of what makes BLOOM beautiful.",
-      chips: ["Unity", "Growth", "Shared Memories"],
-      primaryLabel: "See Moments",
-      primaryHref: "#moments",
-    },
-  };
-
-  function openCelebrationPopup(item) {
-    if (!celebrationModal) return;
-
-    lastCelebrationFocus = document.activeElement;
-
-    celebrationBadge.textContent = item.badge || "BLOOM CELEBRATES";
-    celebrationImage.src = item.image || "assets/images/moments/group photo.png";
-    celebrationImage.alt = item.title || "Celebration";
-    celebrationTitle.textContent = item.title || "A Special Day 🌸";
-    celebrationSubtitle.textContent = item.subtitle || "";
-    celebrationBody.textContent = item.message || "";
-
-    if (item.quote) {
-      celebrationQuote.hidden = false;
-      celebrationQuote.textContent = item.quote;
-    } else {
-      celebrationQuote.hidden = true;
-      celebrationQuote.textContent = "";
-    }
-
-    celebrationMeta.innerHTML = "";
-    (item.chips || []).forEach((chipText) => {
-      const chip = document.createElement("div");
-      chip.className = "celebration-chip";
-      chip.textContent = chipText;
-      celebrationMeta.appendChild(chip);
-    });
-
-    celebrationPrimary.textContent = item.primaryLabel || "Celebrate";
-    celebrationPrimary.href = item.primaryHref || "#";
-
-    celebrationModal.classList.add("open");
-    celebrationModal.setAttribute("aria-hidden", "false");
-    syncBodyLocks();
-
-    if (celebrationClose) celebrationClose.focus();
-    launchConfettiFlowers();
-  }
-
-  function markCelebrationSeen(item) {
-    const key = `bloom-special-${item.storageKey}`;
-    localStorage.setItem(key, "seen");
-  }
-
-  function closeCelebrationPopup() {
-    if (!celebrationModal || !celebrationQueue.length) return;
-
-    const current = celebrationQueue.shift();
-    markCelebrationSeen(current);
-
-    celebrationModal.classList.remove("open");
-    celebrationModal.setAttribute("aria-hidden", "true");
-
-    if (celebrationQueue.length > 0) {
-      setTimeout(() => openCelebrationPopup(celebrationQueue[0]), 180);
-    } else {
-      syncBodyLocks();
-      if (lastCelebrationFocus && typeof lastCelebrationFocus.focus === "function") {
-        lastCelebrationFocus.focus();
-      }
-    }
-  }
-
-  function buildSpecialQueue() {
-    const now = getTimePartsInZone(SPECIAL_DAYS.timeZone);
-    const greeting = greetingFromHour(now.hour);
-    const todayStamp = `${now.year}-${String(now.month).padStart(2, "0")}-${String(now.day).padStart(2, "0")}`;
-
-    const queue = [];
-
-    SPECIAL_DAYS.birthdays.forEach((birthday) => {
-      if (birthday.month !== now.month || birthday.day !== now.day) return;
-
-      const storageKey = `${birthday.id}-${todayStamp}`;
-      if (localStorage.getItem(`bloom-special-${storageKey}`) === "seen") return;
-
-      queue.push({
-        ...birthday,
-        subtitle: `${greeting} — it’s ${String(now.hour).padStart(2, "0")}:${String(now.minute).padStart(2, "0")} in Nairobi, and today is ${birthday.name}'s special day.`,
-        storageKey,
-      });
-    });
-
-    const ann = SPECIAL_DAYS.anniversary;
-    if (ann && ann.month === now.month && ann.day === now.day) {
-      const years = anniversaryYears(ann.foundedYear, now.year);
-      const storageKey = `${ann.id}-${todayStamp}`;
-
-      if (localStorage.getItem(`bloom-special-${storageKey}`) !== "seen") {
-        const chips = [...(ann.chips || [])];
-        if (years) chips.unshift(`${years} Year${years === 1 ? "" : "s"} of BLOOM`);
-
-        queue.push({
-          ...ann,
-          chips,
-          subtitle: `${greeting} — today marks a special day for BLOOM in Nairobi.`,
-          storageKey,
-        });
-      }
-    }
-
-    return queue;
-  }
-
-  if (celebrationClose) {
-    celebrationClose.addEventListener("click", closeCelebrationPopup);
-  }
-
-  if (celebrationSecondary) {
-    celebrationSecondary.addEventListener("click", closeCelebrationPopup);
-  }
-
-  if (celebrationPrimary) {
-    celebrationPrimary.addEventListener("click", () => {
-      if (celebrationQueue.length) {
-        markCelebrationSeen(celebrationQueue[0]);
-      }
-    });
-  }
-
-  if (celebrationModal) {
-    celebrationModal.addEventListener("click", (e) => {
-      if (e.target === celebrationModal) closeCelebrationPopup();
-    });
-
-    celebrationQueue = buildSpecialQueue();
-    if (celebrationQueue.length > 0) {
-      openCelebrationPopup(celebrationQueue[0]);
-    }
-  }
-
-  // ---------------- MEMBERS PAGE: RENDER MEMBERS ----------------
-  const yearbookGrid = document.getElementById("yearbookGrid");
-
-  function renderMembers() {
-    if (!yearbookGrid) return;
-
-    yearbookGrid.innerHTML = "";
-
-    MEMBERS.forEach((member, idx) => {
-      const card = document.createElement("article");
-      card.className = "member-card";
-      card.tabIndex = 0;
-      card.setAttribute("role", "button");
-      card.setAttribute("aria-label", `Open profile for ${member.name}`);
-
-      const portrait = document.createElement("div");
-      portrait.className = "portrait";
-
-      const img = document.createElement("img");
-      img.alt = `${member.name} portrait`;
-      img.loading = "lazy";
-      img.decoding = "async";
-      if (member.img) img.src = member.img;
-
-      const initials = document.createElement("div");
-      initials.className = "initials";
-      initials.textContent = initialsFromName(member.name);
-
-      img.addEventListener("load", () => portrait.classList.add("has-img"));
-      img.addEventListener("error", () => img.remove());
-
-      portrait.appendChild(img);
-      portrait.appendChild(initials);
-
-      const meta = document.createElement("div");
-      meta.className = "member-meta";
-
-      const nameEl = document.createElement("h3");
-      nameEl.className = "member-name";
-      nameEl.textContent = member.name;
-
-      const quoteEl = document.createElement("p");
-      quoteEl.className = "member-quote";
-      if (member.quote) {
-        quoteEl.textContent = member.quote;
-      } else {
-        quoteEl.hidden = true;
-      }
-
-      meta.appendChild(nameEl);
-      meta.appendChild(quoteEl);
-
-      card.appendChild(portrait);
-      card.appendChild(meta);
-
-      card.addEventListener("click", () => openProfile(member.id));
-      card.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openProfile(member.id);
-        }
-      });
-
-      if (!reduceMotion) {
-        card.style.transitionDelay = `${Math.min(idx * 45, 400)}ms`;
-      }
-
-      yearbookGrid.appendChild(card);
-    });
-
-    observeInView(document.querySelectorAll(".member-card"), {
-      threshold: 0.2,
-      rootMargin: "0px 0px -50px 0px",
-    });
-  }
-
-  // ---------------- MEMBERS PAGE: RENDER HANGOUTS ----------------
-  const hangoutsGrid = document.getElementById("hangoutsGrid");
-
-  function makeMemberChip(member, onClick) {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "chip";
-    chip.setAttribute("aria-label", `Open profile: ${member.name}`);
-
-    const dot = document.createElement("span");
-    dot.className = "chip-dot";
-    dot.setAttribute("aria-hidden", "true");
-
-    const text = document.createElement("span");
-    text.textContent = member.name;
-
-    chip.appendChild(dot);
-    chip.appendChild(text);
-
-    chip.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onClick();
-    });
-
-    return chip;
-  }
-
-  function renderHangouts() {
-    if (!hangoutsGrid) return;
-
-    hangoutsGrid.innerHTML = "";
-
-    HANGOUTS.forEach((hangout) => {
-      const card = document.createElement("div");
-      card.className = "hangout-card";
-      card.tabIndex = 0;
-      card.setAttribute("role", "button");
-      card.setAttribute("aria-label", `Open hangout: ${hangout.title}`);
-
-      const mediaWrap = document.createElement("div");
-      mediaWrap.className = "hangout-media";
-
-      const badge = document.createElement("div");
-      badge.className = "hangout-badge";
-      badge.textContent = "HANGOUT";
-      mediaWrap.appendChild(badge);
-
-      const cover = firstCoverForHangout(hangout);
-      const coverImg = document.createElement("img");
-      coverImg.src = safeImgSrc(cover.src, "🌸", "BLOOM HANGOUT");
-      coverImg.alt = `${hangout.title} cover`;
-      mediaWrap.appendChild(coverImg);
-
-      const first = firstMediaThumbForHangout(hangout);
-      if (first && first.type === "video") {
-        const tag = document.createElement("div");
-        tag.className = "media-tag";
-        tag.textContent = "VIDEO";
-        mediaWrap.appendChild(tag);
-      }
-
-      const meta = document.createElement("div");
-      meta.className = "hangout-meta";
-
-      const title = document.createElement("div");
-      title.className = "hangout-title";
-      title.textContent = hangout.title;
-
-      const date = document.createElement("div");
-      date.className = "hangout-date";
-      date.textContent = hangout.dateLabel || "—";
-
-      const caption = document.createElement("div");
-      caption.className = "hangout-caption";
-      caption.textContent = hangout.caption || "";
-
-      const chips = document.createElement("div");
-      chips.className = "chips";
-
-      (hangout.tags || []).forEach((memberId) => {
-        const member = MEMBERS_BY_ID.get(memberId);
-        if (!member) return;
-        chips.appendChild(makeMemberChip(member, () => openProfile(memberId)));
-      });
-
-      meta.appendChild(title);
-      meta.appendChild(date);
-      meta.appendChild(caption);
-      meta.appendChild(chips);
-
-      card.appendChild(mediaWrap);
-      card.appendChild(meta);
-
-      card.addEventListener("click", () => openHangout(hangout.id));
-      card.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openHangout(hangout.id);
-        }
-      });
-
-      hangoutsGrid.appendChild(card);
-    });
-  }
-
   // ---------------- MEMBERS PAGE: PROFILE MODAL ----------------
   const profileModal = document.getElementById("profileModal");
   const profileClose = document.getElementById("profileClose");
@@ -1034,7 +650,6 @@
   const factsGrid = document.getElementById("factsGrid");
   const momentsStrip = document.getElementById("momentsStrip");
   const momentsSub = document.getElementById("momentsSub");
-
   let lastProfileFocus = null;
 
   function makeMomentCard(momentData) {
@@ -1233,6 +848,31 @@
   const hangoutPhotos = document.getElementById("hangoutPhotos");
   const hangoutPeople = document.getElementById("hangoutPeople");
 
+  function makeMemberChip(member, onClick) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.setAttribute("aria-label", `Open profile: ${member.name}`);
+
+    const dot = document.createElement("span");
+    dot.className = "chip-dot";
+    dot.setAttribute("aria-hidden", "true");
+
+    const text = document.createElement("span");
+    text.textContent = member.name;
+
+    chip.appendChild(dot);
+    chip.appendChild(text);
+
+    chip.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick();
+    });
+
+    return chip;
+  }
+
   function openHangout(hangoutId) {
     const hangout = HANGOUTS.find((item) => item.id === hangoutId);
     if (!hangout || !hangoutModal) return;
@@ -1381,6 +1021,425 @@
     });
   }
 
+  // ---------------- MEMBERS PAGE: RENDER MEMBERS ----------------
+  const yearbookGrid = document.getElementById("yearbookGrid");
+
+  function renderMembers() {
+    if (!yearbookGrid) return;
+
+    yearbookGrid.innerHTML = "";
+
+    MEMBERS.forEach((member, idx) => {
+      const card = document.createElement("article");
+      card.className = "member-card";
+      card.tabIndex = 0;
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", `Open profile for ${member.name}`);
+
+      const portrait = document.createElement("div");
+      portrait.className = "portrait";
+
+      const img = document.createElement("img");
+      img.alt = `${member.name} portrait`;
+      img.loading = "lazy";
+      img.decoding = "async";
+      if (member.img) img.src = member.img;
+
+      const initials = document.createElement("div");
+      initials.className = "initials";
+      initials.textContent = initialsFromName(member.name);
+
+      img.addEventListener("load", () => portrait.classList.add("has-img"));
+      img.addEventListener("error", () => img.remove());
+
+      portrait.appendChild(img);
+      portrait.appendChild(initials);
+
+      const meta = document.createElement("div");
+      meta.className = "member-meta";
+
+      const nameEl = document.createElement("h3");
+      nameEl.className = "member-name";
+      nameEl.textContent = member.name;
+
+      const quoteEl = document.createElement("p");
+      quoteEl.className = "member-quote";
+      if (member.quote) {
+        quoteEl.textContent = member.quote;
+      } else {
+        quoteEl.hidden = true;
+      }
+
+      meta.appendChild(nameEl);
+      meta.appendChild(quoteEl);
+
+      card.appendChild(portrait);
+      card.appendChild(meta);
+
+      card.addEventListener("click", () => openProfile(member.id));
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openProfile(member.id);
+        }
+      });
+
+      if (!reduceMotion) {
+        card.style.transitionDelay = `${Math.min(idx * 45, 400)}ms`;
+      }
+
+      yearbookGrid.appendChild(card);
+    });
+
+    observeInView(document.querySelectorAll(".member-card"), {
+      threshold: 0.2,
+      rootMargin: "0px 0px -50px 0px",
+    });
+  }
+
+  // ---------------- MEMBERS PAGE: RENDER HANGOUTS ----------------
+  const hangoutsGrid = document.getElementById("hangoutsGrid");
+
+  function renderHangouts() {
+    if (!hangoutsGrid) return;
+
+    hangoutsGrid.innerHTML = "";
+
+    HANGOUTS.forEach((hangout) => {
+      const card = document.createElement("div");
+      card.className = "hangout-card";
+      card.tabIndex = 0;
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", `Open hangout: ${hangout.title}`);
+
+      const mediaWrap = document.createElement("div");
+      mediaWrap.className = "hangout-media";
+
+      const badge = document.createElement("div");
+      badge.className = "hangout-badge";
+      badge.textContent = "HANGOUT";
+      mediaWrap.appendChild(badge);
+
+      const cover = firstCoverForHangout(hangout);
+      const coverImg = document.createElement("img");
+      coverImg.src = safeImgSrc(cover.src, "🌸", "BLOOM HANGOUT");
+      coverImg.alt = `${hangout.title} cover`;
+      mediaWrap.appendChild(coverImg);
+
+      const first = firstMediaThumbForHangout(hangout);
+      if (first && first.type === "video") {
+        const tag = document.createElement("div");
+        tag.className = "media-tag";
+        tag.textContent = "VIDEO";
+        mediaWrap.appendChild(tag);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "hangout-meta";
+
+      const title = document.createElement("div");
+      title.className = "hangout-title";
+      title.textContent = hangout.title;
+
+      const date = document.createElement("div");
+      date.className = "hangout-date";
+      date.textContent = hangout.dateLabel || "—";
+
+      const caption = document.createElement("div");
+      caption.className = "hangout-caption";
+      caption.textContent = hangout.caption || "";
+
+      const chips = document.createElement("div");
+      chips.className = "chips";
+
+      (hangout.tags || []).forEach((memberId) => {
+        const member = MEMBERS_BY_ID.get(memberId);
+        if (!member) return;
+        chips.appendChild(makeMemberChip(member, () => openProfile(memberId)));
+      });
+
+      meta.appendChild(title);
+      meta.appendChild(date);
+      meta.appendChild(caption);
+      meta.appendChild(chips);
+
+      card.appendChild(mediaWrap);
+      card.appendChild(meta);
+
+      card.addEventListener("click", () => openHangout(hangout.id));
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openHangout(hangout.id);
+        }
+      });
+
+      hangoutsGrid.appendChild(card);
+    });
+  }
+
+  // ---------------- SHARED: OPEN MEMBER FROM URL ----------------
+  function openProfileFromQuery() {
+    if (!profileModal) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const memberId = params.get("member");
+    if (!memberId || !MEMBERS_BY_ID.has(memberId)) return;
+
+    openProfile(memberId);
+
+    const cleanUrl = window.location.pathname + (window.location.hash || "");
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  // ---------------- INDEX: CELEBRATE BUTTON + SPECIAL DAY POPUP ----------------
+  const celebrateBtn = document.getElementById("celebrateBtn");
+  const celebrateSection = document.querySelector(".celebrate-section");
+  const heroSection = document.querySelector(".hero-section");
+
+  const celebrationModal = document.getElementById("celebrationModal");
+  const celebrationClose = document.getElementById("celebrationClose");
+  const celebrationBadge = document.getElementById("celebrationBadge");
+  const celebrationImage = document.getElementById("celebrationImage");
+  const celebrationTitle = document.getElementById("celebrationTitle");
+  const celebrationSubtitle = document.getElementById("celebrationSubtitle");
+  const celebrationBody = document.getElementById("celebrationBody");
+  const celebrationQuote = document.getElementById("celebrationQuote");
+  const celebrationMeta = document.getElementById("celebrationMeta");
+  const celebrationPrimary = document.getElementById("celebrationPrimary");
+  const celebrationPrev = document.getElementById("celebrationPrev");
+  const celebrationNext = document.getElementById("celebrationNext");
+
+  let celebrationItems = [];
+  let currentCelebrationIndex = 0;
+  let lastCelebrationFocus = null;
+
+  const SPECIAL_DAYS = {
+    timeZone: "Africa/Nairobi",
+    birthdays: MEMBERS.map((member) => {
+      const birthdayFact = getBirthdayFact(member);
+      const parsed = parseBirthdayValue(birthdayFact?.value);
+      if (!parsed) return null;
+
+      return {
+        type: "birthday",
+        id: `${member.id}-birthday`,
+        memberId: member.id,
+        month: parsed.month,
+        day: parsed.day,
+        name: member.name,
+        image: member.img,
+        badge: "BLOOM CELEBRATES",
+        title: `Happy Birthday, ${member.name} 🌸`,
+        message: `Today we celebrate ${member.name}, their presence, their growth, and the energy they bring into BLOOM. Wishing them joy, peace, and beautiful memories in the year ahead.`,
+        quote: member.quote || "",
+        primaryLabel: "View Profile",
+        primaryHref: `members.html?member=${encodeURIComponent(member.id)}`,
+      };
+    }).filter(Boolean),
+
+    anniversary: {
+      type: "anniversary",
+      id: "bloom-anniversary",
+      month: 1,
+      day: 1,
+      foundedYear: 2025,
+      image: "assets/images/moments/group photo.png",
+      badge: "BLOOM ANNIVERSARY",
+      title: "Happy BLOOM Day 🌸",
+      message:
+        "Today we celebrate another year of unity, growth, laughter, and shared memories. Every hangout, every chant, and every moment is part of what makes BLOOM beautiful.",
+      chips: ["Unity", "Growth", "Shared Memories"],
+      primaryLabel: "See Moments",
+      primaryHref: "#moments",
+    },
+  };
+
+  function getTodayCelebrations() {
+    const now = getTimePartsInZone(SPECIAL_DAYS.timeZone);
+    const results = [];
+
+    SPECIAL_DAYS.birthdays.forEach((birthday) => {
+      if (birthday.month === now.month && birthday.day === now.day) {
+        results.push({ ...birthday });
+      }
+    });
+
+    const ann = SPECIAL_DAYS.anniversary;
+    if (ann && ann.month === now.month && ann.day === now.day) {
+      const years = anniversaryYears(ann.foundedYear, now.year);
+      const chips = [...(ann.chips || [])];
+
+      if (years) chips.unshift(`${years} Year${years === 1 ? "" : "s"} of BLOOM`);
+
+      results.push({
+        ...ann,
+        chips,
+      });
+    }
+
+    return results;
+  }
+
+  function renderCelebration(index) {
+    if (!celebrationItems.length || !celebrationModal) return;
+
+    currentCelebrationIndex = index;
+    const item = celebrationItems[currentCelebrationIndex];
+    if (!item) return;
+
+    celebrationBadge.textContent = item.badge || "BLOOM CELEBRATES";
+    celebrationImage.src = item.image || "assets/images/moments/group photo.png";
+    celebrationImage.alt = item.title || "Celebration";
+    celebrationTitle.textContent = item.title || "A Special Day 🌸";
+
+    if (celebrationSubtitle) {
+      celebrationSubtitle.textContent = "";
+      celebrationSubtitle.hidden = true;
+    }
+
+    celebrationBody.textContent = item.message || "";
+
+    if (item.quote) {
+      celebrationQuote.hidden = false;
+      celebrationQuote.textContent = item.quote;
+    } else {
+      celebrationQuote.hidden = true;
+      celebrationQuote.textContent = "";
+    }
+
+    celebrationMeta.innerHTML = "";
+    (item.chips || []).forEach((chipText) => {
+      const chip = document.createElement("div");
+      chip.className = "celebration-chip";
+      chip.textContent = chipText;
+      celebrationMeta.appendChild(chip);
+    });
+
+    if (celebrationPrimary) {
+      celebrationPrimary.textContent = item.primaryLabel || "Celebrate";
+      celebrationPrimary.href = item.primaryHref || "#";
+    }
+
+    const showNav = celebrationItems.length > 1;
+
+    if (celebrationPrev) {
+      celebrationPrev.style.display = showNav ? "inline-flex" : "none";
+      celebrationPrev.disabled = !showNav || currentCelebrationIndex === 0;
+    }
+
+    if (celebrationNext) {
+      celebrationNext.style.display = showNav ? "inline-flex" : "none";
+      celebrationNext.disabled =
+        !showNav || currentCelebrationIndex === celebrationItems.length - 1;
+    }
+  }
+
+  function openCelebrationPopup(itemsOrSingle, startIndex = 0) {
+    if (!celebrationModal) return;
+
+    const items = Array.isArray(itemsOrSingle) ? itemsOrSingle : [itemsOrSingle];
+    if (!items.length) return;
+
+    lastCelebrationFocus = document.activeElement;
+    celebrationItems = items;
+    currentCelebrationIndex = startIndex;
+
+    celebrationModal.classList.add("open");
+    celebrationModal.setAttribute("aria-hidden", "false");
+    syncBodyLocks();
+
+    renderCelebration(currentCelebrationIndex);
+
+    if (celebrationClose) celebrationClose.focus();
+    launchConfettiFlowers();
+  }
+
+  function closeCelebrationPopup() {
+    if (!celebrationModal) return;
+
+    celebrationModal.classList.remove("open");
+    celebrationModal.setAttribute("aria-hidden", "true");
+
+    celebrationItems = [];
+    currentCelebrationIndex = 0;
+
+    syncBodyLocks();
+
+    if (lastCelebrationFocus && typeof lastCelebrationFocus.focus === "function") {
+      lastCelebrationFocus.focus();
+    }
+  }
+
+  function setupCelebrateButton() {
+    if (!celebrateBtn) return;
+
+    const todayCelebrations = getTodayCelebrations();
+    const birthdayItems = todayCelebrations.filter((item) => item.type === "birthday");
+    const anniversaryItems = todayCelebrations.filter((item) => item.type === "anniversary");
+
+    if ((birthdayItems.length > 0 || anniversaryItems.length > 0) && celebrateSection && heroSection) {
+      heroSection.insertAdjacentElement("afterend", celebrateSection);
+    }
+
+    if (birthdayItems.length === 1) {
+      celebrateBtn.textContent = `Celebrate ${birthdayItems[0].name}'s Birthday 🌸`;
+      celebrateBtn.setAttribute("aria-label", `Celebrate ${birthdayItems[0].name}'s birthday`);
+    } else if (birthdayItems.length > 1) {
+      celebrateBtn.textContent = "Happy Birthday to Our BLOOM Stars 🌸";
+      celebrateBtn.setAttribute("aria-label", "Celebrate today's birthdays");
+    } else {
+      celebrateBtn.textContent = "Celebrate Bloom 🌸";
+      celebrateBtn.setAttribute("aria-label", "Celebrate Bloom");
+    }
+
+    celebrateBtn.addEventListener("click", () => {
+      if (birthdayItems.length > 0) {
+        openCelebrationPopup([...birthdayItems, ...anniversaryItems], 0);
+        return;
+      }
+
+      if (anniversaryItems.length > 0) {
+        openCelebrationPopup(anniversaryItems[0], 0);
+        return;
+      }
+
+      launchConfettiFlowers();
+    });
+  }
+
+  if (celebrationClose) {
+    celebrationClose.addEventListener("click", closeCelebrationPopup);
+  }
+
+  if (celebrationPrev) {
+    celebrationPrev.addEventListener("click", () => {
+      if (currentCelebrationIndex > 0) {
+        renderCelebration(currentCelebrationIndex - 1);
+      }
+    });
+  }
+
+  if (celebrationNext) {
+    celebrationNext.addEventListener("click", () => {
+      if (currentCelebrationIndex < celebrationItems.length - 1) {
+        renderCelebration(currentCelebrationIndex + 1);
+      }
+    });
+  }
+
+  if (celebrationPrimary) {
+    celebrationPrimary.addEventListener("click", () => {
+      closeCelebrationPopup();
+    });
+  }
+
+  if (celebrationModal) {
+    celebrationModal.addEventListener("click", (e) => {
+      if (e.target === celebrationModal) closeCelebrationPopup();
+    });
+  }
+
   // ---------------- GLOBAL ESCAPE HANDLING ----------------
   window.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
@@ -1418,5 +1477,7 @@
   // ---------------- INIT PAGE-SPECIFIC FEATURES ----------------
   renderMembers();
   renderHangouts();
+  openProfileFromQuery();
+  setupCelebrateButton();
   syncBodyLocks();
 })();
